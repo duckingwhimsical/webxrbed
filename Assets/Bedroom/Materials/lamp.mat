@@ -72,7 +72,7 @@ Material:
     - _Emission: 1
     - _EmissionLM: 0
     - _GlossMapScale: 1
-    - _Glossiness: 0.616
+    - _Glossiness: 0.604
     - _GlossyReflections: 1
     - _Mode: 0
     - _OcclusionStrength: 1
@@ -86,5 +86,5 @@ Material:
     m_Colors:
     - _Color: {r: 1, g: 1, b: 1, a: 1}
     - _EmissionColor: {r: 5.451594, g: 5.451594, b: 5.451594, a: 1}
-    - _SpecColor: {r: 0, g: 0, b: 0, a: 1}
+    - _SpecColor: {r: 0.5019608, g: 0.5019608, b: 0.5019608, a: 1}
   m_BuildTextureStacks: []
