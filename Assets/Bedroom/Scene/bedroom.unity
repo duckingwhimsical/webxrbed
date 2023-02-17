@@ -1883,7 +1883,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 5110219006320003338, guid: 5884c5d74733ba64c899b8f18b2316db, type: 3}
       propertyPath: hour
-      value: 6
+      value: 0
       objectReference: {fileID: 0}
     - target: {fileID: 5110219006320003338, guid: 5884c5d74733ba64c899b8f18b2316db, type: 3}
       propertyPath: speed

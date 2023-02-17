@@ -4,11 +4,16 @@ using UnityEngine;
 
 public class Clock_Digital : MonoBehaviour
 {
+    public static Clock_Digital instance;
+
     public float speed = 1.0f;
     public int minute;      // start Time
     public int hour;        // start Time
 
     public bool twelveHourTime = true;
+    public bool pm = false;
+
+    public Renderer ampmRenderer;
 
     Renderer objRenderer;
 
@@ -23,9 +28,16 @@ public class Clock_Digital : MonoBehaviour
 
     void Start()
     {
+        instance = this;
         objRenderer = GetComponent<Renderer>();
         mainTexID = Shader.PropertyToID("_MainTex");
         emissionID = Shader.PropertyToID("_EmissionMap");
+    }
+
+    private void SetAMPM()
+    {
+        if (ampmRenderer)
+            ampmRenderer.enabled = pm;
     }
 
     void Update()
@@ -42,7 +54,11 @@ public class Clock_Digital : MonoBehaviour
                 if (hour >= 24)
                     hour = 0;
                 if (twelveHourTime && hour > 12)
+                {
                     hour = 1;
+                    pm = !pm;
+                    SetAMPM();
+                }
             }
         }
 
