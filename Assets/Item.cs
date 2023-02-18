@@ -4,10 +4,10 @@ using UnityEngine;
 
 public class Item : MonoBehaviour
 {
-    private float MaxVelocityChange = 5f;
-    private float MaxAngularVelocityChange = 10f;
-    private float VelocityMagic = 2000f;
-    private float AngularVelocityMagic = 10f;
+    private const float MaxVelocityChange = 5f;
+    private const float MaxAngularVelocityChange = 10f;
+    private const float VelocityMagic = 3000f;
+    private const float AngularVelocityMagic = 25f;
 
     private Vector3 initialPosition;
     private Quaternion initialRotation;
@@ -16,6 +16,8 @@ public class Item : MonoBehaviour
     private float NewtonVRExpectedDeltaTime = 0.011f;
 
     private bool initialized = false;
+
+    public bool beingInteractedWith = false;
 
     private IEnumerator Start()
     {
@@ -32,6 +34,14 @@ public class Item : MonoBehaviour
         initialized = true;
     }
 
+    private void Update()
+    {
+        if (Input.GetKeyUp(KeyCode.I))
+            this.transform.Translate(1, 1, 1);
+        if (Input.GetKeyUp(KeyCode.L))
+            this.transform.Rotate(0, 90, 0);
+    }
+
     private void FixedUpdate()
     {
         if (initialized)
@@ -40,51 +50,72 @@ public class Item : MonoBehaviour
         }
     }
 
-    protected virtual void UpdateVelocities()
+    public void AddExternalVelocity(Vector3 velocity)
     {
-        Vector3 targetItemPosition = this.Rigidbody.position;
-        Quaternion targetItemRotation = this.Rigidbody.rotation;
+        this.Rigidbody.velocity = Vector3.Lerp(this.Rigidbody.velocity, velocity, 0.5f);
+    }
 
-        Vector3 targetHandPosition = initialPosition;
-        Quaternion targetHandRotation = initialRotation;
+    public void AddExternalAngularVelocity(Vector3 angularVelocity)
+    {
+        this.Rigidbody.angularVelocity = Vector3.Lerp(this.Rigidbody.angularVelocity, angularVelocity, 0.5f);
+    }
 
+    private float timeLastStill;
 
-        float velocityMagic = VelocityMagic / (Time.deltaTime / NewtonVRExpectedDeltaTime);
-        float angularVelocityMagic = AngularVelocityMagic / (Time.deltaTime / NewtonVRExpectedDeltaTime);
+    private float maxDistanceDelta = 0.1f;
+    private float maxAngleDelta = 10f;
+    public void UpdateVelocities()
+    {
+        if (beingInteractedWith)
+            return;
+        bool still = false;
 
-        Vector3 positionDelta;
-        Quaternion rotationDelta;
-
-        float angle;
-        Vector3 axis;
-
-        positionDelta = (targetHandPosition - targetItemPosition);
-        rotationDelta = targetHandRotation * Quaternion.Inverse(targetItemRotation);
-
-        if (positionDelta.sqrMagnitude > 0.01f)
+        float positionDifference = Vector3.Distance(this.transform.position, initialPosition);
+        if (positionDifference > 0.001f)
         {
-            Vector3 velocityTarget = (positionDelta * velocityMagic) * Time.deltaTime;
-            if (float.IsNaN(velocityTarget.x) == false)
-            {
-                this.Rigidbody.velocity = Vector3.MoveTowards(this.Rigidbody.velocity, velocityTarget, MaxVelocityChange);
-                Debug.Log("Moving", this.gameObject);
-            }
+            this.transform.position = Vector3.MoveTowards(this.transform.position, initialPosition, maxDistanceDelta);
+            if (this.Rigidbody.isKinematic == false)
+                this.Rigidbody.velocity /= 2;
+            still = false;
+        }
+        else
+        {
+            if (this.Rigidbody.isKinematic == false)
+                this.Rigidbody.velocity = Vector3.zero;
+            still = true;
         }
 
-        rotationDelta.ToAngleAxis(out angle, out axis);
 
-        if (angle > 180)
-            angle -= 360;
+        float deltaAngle = Quaternion.Angle(initialRotation, this.transform.rotation);
 
-        if (angle != 0)
+        if (deltaAngle > 1 || deltaAngle < -1)
         {
-            Vector3 angularTarget = angle * axis;
-            if (float.IsNaN(angularTarget.x) == false && angularTarget.sqrMagnitude > 0.01f)
-            {
-                angularTarget = (angularTarget * angularVelocityMagic) * Time.deltaTime;
-                this.Rigidbody.angularVelocity = Vector3.MoveTowards(this.Rigidbody.angularVelocity, angularTarget, MaxAngularVelocityChange);
-                Debug.Log("Rotating", this.gameObject);
-            }
+            this.transform.rotation = Quaternion.RotateTowards(this.transform.rotation, initialRotation, maxAngleDelta);
+            if (this.Rigidbody.isKinematic == false)
+                this.Rigidbody.angularVelocity /= 2;
+            still = false;
+
+        }
+        else
+        {
+            if (this.Rigidbody.isKinematic == false)
+                this.Rigidbody.angularVelocity = Vector3.zero;
+            still = still && true;
+        }
+
+        if (still == true)
+        {
+            timeLastStill = Time.time;
+
+            if (this.Rigidbody.isKinematic)
+                this.Rigidbody.isKinematic = false;
+        }
+        
+        if (still == false && Time.time - timeLastStill > maxTimeToRevert)
+        {
+            //trying to get back but not there yet. turn it kinematic so it can zip.
+            this.Rigidbody.isKinematic = true;
         }
     }
+    private float maxTimeToRevert = 2;
 }
