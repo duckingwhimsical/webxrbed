@@ -32,7 +32,7 @@ public class VoiceOver : MonoBehaviour
         "What am I even going to watch though?",
         "I've already seen everything decent.",
         ".",
-    }
+    };
 
     // Start is called before the first frame update
     void Start()
